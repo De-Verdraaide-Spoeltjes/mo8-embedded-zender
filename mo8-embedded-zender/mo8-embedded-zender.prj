@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ASCII"?>
+<sdkproject:SdkProject xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sdkproject="http://www.xilinx.com/sdkproject" name="mo8-embedded-zender" location="D:/Vitis/embedded-mo8/mo8-embedded-zender" platform="D:/Vitis/embedded-mo8/mo8-zender-platform/export/mo8-zender-platform/mo8-zender-platform.xpfm" platformUID="xilinx:pynq-z2::0.0(custom)" systemProject="mo8-embedded-zender_system" sysConfig="mo8-zender-platform" runtime="C/C++" cpu="standalone_domain" cpuInstance="ps7_cortexa9_0" os="standalone" dimmRepoPath="" mssSignature="c2a5f46db478fd9624b87532f7618aa5">
+  <configuration name="Debug" id="xilinx.gnu.armv7.exe.debug.24217596">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+    <lastBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <configuration name="Release" id="xilinx.gnu.armv7.exe.release.225073282" dirty="true">
+    <configBuildOptions xsi:type="sdkproject:SdkOptions"/>
+  </configuration>
+  <template appTemplateName="hello_world"/>
+</sdkproject:SdkProject>
