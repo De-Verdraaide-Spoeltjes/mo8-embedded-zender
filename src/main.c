@@ -7,7 +7,7 @@
 #include "transmit_rsa_keys.h"
 #include "rsa_encryption.h"
 
-struct rsaData *RSAData;
+rsaData *RSAData;
 
 int main()
 {
@@ -16,12 +16,7 @@ int main()
 
     XStatus status;
 
-    status = generateRSAKeys(557);
-    if (status != XST_SUCCESS) {
-		print("Error generating encryption keys\n\r");
-		cleanup_platform();
-		return 0;
-	}
+    RSAData = generateRSAKeys(1);
 
     status = initKeyTransmission();
     if (status != XST_SUCCESS) {
