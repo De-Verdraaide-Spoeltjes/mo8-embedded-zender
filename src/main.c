@@ -16,7 +16,7 @@ int main()
 
     XStatus status;
 
-    status = generateRSAKeys();
+    status = generateRSAKeys(557);
     if (status != XST_SUCCESS) {
 		print("Error generating encryption keys\n\r");
 		cleanup_platform();
