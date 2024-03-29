@@ -9,4 +9,8 @@ typedef struct RSAData {
 	uint64_t modulus;
 } rsaData;
 
+// The range for the random prime number generator - bigger primes means bigger RSA keys
+#define RSA_PRIMES_MINIMUM 5
+#define RSA_PRIMES_MAXIMUM 100
+
 #endif
