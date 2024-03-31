@@ -6,7 +6,7 @@
 typedef struct RSAData {
 	uint64_t publicKey;
 	uint64_t privateKey;
-	uint64_t modulus;
+	uint32_t modulus;
 } rsaData;
 
 #endif

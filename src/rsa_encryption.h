@@ -1,5 +1,5 @@
-#ifndef SRC_RSA_ENCRYPTIE_H
-#define SRC_RSA_ENCRYPTIE_H
+#ifndef SRC_RSA_ENCRYPTION_H
+#define SRC_RSA_ENCRYPTION_H
 
 #include "xstatus.h"
 

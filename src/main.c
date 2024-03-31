@@ -3,11 +3,10 @@
 #include "xil_printf.h"
 
 #include "defines.h"
-#include "generate_rsa_keys.h"
-#include "transmit_rsa_keys.h"
+#include "rsa_key_receiver.h"
 #include "rsa_encryption.h"
 
-struct rsaData *RSAData;
+rsaData *RSAData;
 
 int main()
 {
@@ -16,16 +15,9 @@ int main()
 
     XStatus status;
 
-    status = generateRSAKeys();
+    status = initKeyReceiver();
     if (status != XST_SUCCESS) {
-		print("Error generating encryption keys\n\r");
-		cleanup_platform();
-		return 0;
-	}
-
-    status = initKeyTransmission();
-    if (status != XST_SUCCESS) {
-    	print("Error initializing key transmission\n\r");
+    	print("Error initializing key receiver\n\r");
     	cleanup_platform();
 		return 0;
     }
