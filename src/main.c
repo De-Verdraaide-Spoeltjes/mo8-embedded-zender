@@ -1,15 +1,14 @@
 #include <stdio.h>
-#include "platform.h"
-#include "xil_printf.h"
 
 #include "defines.h"
-#include "rsa_key_receiver.h"
+#include "platform.h"
 #include "rsa_encryption.h"
+#include "rsa_key_receiver.h"
+#include "xil_printf.h"
 
 rsaData *RSAData;
 
-int main()
-{
+int main() {
     init_platform();
     print("Starting embedded application\n\r");
 
@@ -33,7 +32,9 @@ int main()
 
     print("Embedded application initialized\n\r");
 
-    while(1);
+    while (1) {
+        runKeyReceiver();
+    }
 
     cleanup_platform();
     return 0;
