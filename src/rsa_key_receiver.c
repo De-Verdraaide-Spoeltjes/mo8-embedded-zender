@@ -4,6 +4,7 @@
 #include "xstatus.h"
 #include "xuartps.h"
 #include "xtime_l.h"
+#include "xgpio.h"
 
 #include "defines.h"
 
@@ -11,12 +12,17 @@
 
 XUartPs uart;		/* Instance of the UART Device */
 
+rsaData *RSAdata;
+
 bool UartSendAvailable();
 void UartSendBytes(u8 *data, int length);
 bool UartRecvAvailable();
 void UartRecvBytes(u8 *data, int length);
+void runKeyReceiver();
 
-XStatus initKeyReceiver() {
+XStatus initKeyReceiver(rsaData *RSAData) {
+	RSAdata = RSAData;
+
 	XUartPs_Config *Config;
 	int status;
 
@@ -37,9 +43,33 @@ XStatus initKeyReceiver() {
 	return XST_SUCCESS;
 }
 
+void keyReceiverInterrupt(void* gpio) {
+	// Disable interrupts
+	XGpio_InterruptDisable((XGpio *)gpio, 1);
+
+	// Ignore additional button presses
+	if ((XGpio_InterruptGetStatus((XGpio *)gpio) & 1) != 1) {
+		return;
+	}
+
+	// Check if the input value is high
+	bool risingEdge = XGpio_DiscreteRead((XGpio *)gpio, 1);
+
+	// Execute key receiver if rising edge
+	if (risingEdge) {
+		runKeyReceiver();
+	}
+
+	// Clear interrupt
+	XGpio_InterruptClear((XGpio *)gpio, 1);
+
+	// Re-enable interrupts
+	XGpio_InterruptEnable((XGpio *)gpio, 1);
+}
+
 // TODO: Add timeouts to UART
 
-void runKeyReceiver(rsaData *RSAData) {
+void runKeyReceiver() {
 	#ifdef DEBUG
 		xil_printf("Requesting RSA key\n\r");
 	#endif
@@ -104,7 +134,7 @@ void runKeyReceiver(rsaData *RSAData) {
 	UartRecvBytes(keyData, 8);
 	
 	// Store received RSA key data
-	RSAData->publicKey = *((uint64_t *) keyData);
+	RSAdata->publicKey = *((uint64_t *) keyData);
 
 	// Wait for room to send data
 	while (!UartSendAvailable());
@@ -115,7 +145,7 @@ void runKeyReceiver(rsaData *RSAData) {
 
 	#ifdef DEBUG
 		xil_printf("Received RSA key: ");
-		xil_printf("0x%x%x\n\r", (uint32_t) (RSAData->publicKey >> 32), (uint32_t) RSAData->publicKey);
+		xil_printf("0x%x%x\n\r", (uint32_t) (RSAdata->publicKey >> 32), (uint32_t) RSAdata->publicKey);
 	#endif
 
 	// Wait for response
@@ -126,7 +156,7 @@ void runKeyReceiver(rsaData *RSAData) {
 	UartRecvBytes(modulusData, 4);
 
 	// Store received RSA modulus data
-	RSAData->modulus = *((uint32_t *) modulusData);
+	RSAdata->modulus = *((uint32_t *) modulusData);
 
 	// Wait for room to send data
 	while (!UartSendAvailable());
@@ -136,7 +166,7 @@ void runKeyReceiver(rsaData *RSAData) {
 	UartSendBytes(&resp, 1);
 
 	#ifdef DEBUG
-		xil_printf("Received RSA modulus: 0x%x\n\r", RSAData->modulus);
+		xil_printf("Received RSA modulus: 0x%x\n\r", RSAdata->modulus);
 	#endif
 }
 
