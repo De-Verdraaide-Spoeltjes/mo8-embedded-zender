@@ -32,9 +32,7 @@ int main() {
 
     print("Embedded application initialized\n\r");
 
-    while (1) {
-        runKeyReceiver();
-    }
+    while (1);
 
     cleanup_platform();
     return 0;

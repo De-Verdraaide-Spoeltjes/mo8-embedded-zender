@@ -40,72 +40,104 @@ XStatus initKeyReceiver() {
 // TODO: Add timeouts to UART
 
 void runKeyReceiver(rsaData *RSAData) {
-	// Check if there is data available to receive
-	if (!UartRecvAvailable()) {
+	#ifdef DEBUG
+		xil_printf("Requesting RSA key\n\r");
+	#endif
+	
+	u8 data, resp;
+
+	// Wait for room to send data
+	while (!UartSendAvailable());
+
+	// Request RSA key command
+	data = 0x01;
+	UartSendBytes(&data, 1);
+
+	// Wait for response
+	while (!UartRecvAvailable());
+
+	// Read response
+	UartRecvBytes(&resp, 1);
+	
+	// Check if response is correct
+	if (resp != 0x01) {
+		#ifdef DEBUG
+			xil_printf("Error: Received unknown command\n\r");
+		#endif
 		return;
 	}
 
-	// Receive data (command byte)
-	u8 data, resp;
-	UartRecvBytes(&data, 1);
-
 	#ifdef DEBUG
-		// Print received command
-		xil_printf("Received UART command: 0x%x\n\r", data);
+		xil_printf("Waiting for RSA key transmission\n\r");
 	#endif
 
-	// Handle received command
-	switch (data) {
-		case 0x01:
-			#ifdef DEBUG
-				xil_printf("Received ping command\n\r");
-			#endif
-			// Ping command
-			while (!UartSendAvailable());
-			resp = 0x01;
-			UartSendBytes(&resp, 1);
-			break;
-		
-		case 0x02:
-			#ifdef DEBUG
-				xil_printf("Receiving RSA key\n\r");
-			#endif
-			// Receive RSA key command
-			resp = 0x02;
-			UartSendBytes(&resp, 1);
+	// Wait for response
+	while (!UartRecvAvailable());
 
-			// Receive RSA key data
-			u8 keyData[8];
-			UartRecvBytes(keyData, 8);
-			
-			// Store received RSA key data
-			RSAData->publicKey = *((uint64_t *) keyData);
+	// Read RSA key command
+	UartRecvBytes(&data, 1);
 
-			// Acknowledge received key
-			resp = 0x03;
-			UartSendBytes(&resp, 1);
-
-			#ifdef DEBUG
-				xil_printf("Received RSA key: ");
-				xil_printf("0x%x%x\n\r", (uint32_t) (RSAData->publicKey >> 32), (uint32_t) RSAData->publicKey);
-			#endif
-
-			// Receive RSA modulus data
-			u8 modulusData[4];
-			UartRecvBytes(modulusData, 4);
-
-			// Store received RSA modulus data
-			RSAData->modulus = *((uint32_t *) modulusData);
-
-			// Acknowledge received modulus
-			resp = 0x04;
-			UartSendBytes(&resp, 1);
-
-			#ifdef DEBUG
-				xil_printf("Received RSA modulus: 0x%x\n\r", RSAData->modulus);
-			#endif
-			break;
+	// Check if command is correct
+	if (data != 0x02) {
+		#ifdef DEBUG
+			xil_printf("Error: Received unknown command\n\r");
+		#endif
+		return;
 	}
+
+	#ifdef DEBUG
+		xil_printf("Receiving RSA key\n\r");
+	#endif
+
+	// Wait for room to send data
+	while (!UartSendAvailable());
+
+	// Receive RSA key command
+	resp = 0x02;
+	UartSendBytes(&resp, 1);
+
+	// Wait for response
+	while (!UartRecvAvailable());
+
+	// Receive RSA key data
+	u8 keyData[8];
+	UartRecvBytes(keyData, 8);
+	
+	// Store received RSA key data
+	RSAData->publicKey = *((uint64_t *) keyData);
+
+	// Wait for room to send data
+	while (!UartSendAvailable());
+
+	// Acknowledge received key
+	resp = 0x03;
+	UartSendBytes(&resp, 1);
+
+	#ifdef DEBUG
+		xil_printf("Received RSA key: ");
+		xil_printf("0x%x%x\n\r", (uint32_t) (RSAData->publicKey >> 32), (uint32_t) RSAData->publicKey);
+	#endif
+
+	// Wait for response
+	while (!UartRecvAvailable());
+
+	// Receive RSA modulus data
+	u8 modulusData[4];
+	UartRecvBytes(modulusData, 4);
+
+	// Store received RSA modulus data
+	RSAData->modulus = *((uint32_t *) modulusData);
+
+	// Wait for room to send data
+	while (!UartSendAvailable());
+
+	// Acknowledge received modulus
+	resp = 0x04;
+	UartSendBytes(&resp, 1);
+
+	#ifdef DEBUG
+		xil_printf("Received RSA modulus: 0x%x\n\r", RSAData->modulus);
+	#endif
 }
 
 // Check if UART is ready to send data
