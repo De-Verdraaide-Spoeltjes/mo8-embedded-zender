@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+// Uncomment to enable debug output
+#define DEBUG
+
+// Data structure for RSA keys
 typedef struct RSAData {
 	uint64_t publicKey;
 	uint64_t privateKey;
