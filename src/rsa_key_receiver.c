@@ -92,7 +92,7 @@ void runKeyReceiver() {
 	// Check if response is correct
 	if (resp != 0x01) {
 		#ifdef DEBUG
-			xil_printf("Error: Received unknown command\n\r");
+			xil_printf("Error: Received unknown command, expected 0x01 and received 0x%x\n\r", resp);
 		#endif
 		return;
 	}
@@ -110,7 +110,7 @@ void runKeyReceiver() {
 	// Check if command is correct
 	if (data != 0x02) {
 		#ifdef DEBUG
-			xil_printf("Error: Received unknown command\n\r");
+			xil_printf("Error: Received unknown command, expected 0x02 and received 0x%x\n\r", resp);
 		#endif
 		return;
 	}
