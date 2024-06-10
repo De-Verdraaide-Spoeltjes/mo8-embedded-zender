@@ -31,6 +31,7 @@ XStatus initInterruptController(XScuGic *interruptController) {
     return XST_SUCCESS;
 }
 
+
 XStatus setupGpioWithInterrupt(XScuGic *interruptController, XGpio *gpio, u16 gpioDeviceId, u32 interruptId, Xil_InterruptHandler handler) {
     XStatus status;
 

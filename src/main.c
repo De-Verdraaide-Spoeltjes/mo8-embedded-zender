@@ -42,11 +42,19 @@ int main() {
         return 0;
     }
 
-    status = initEncryption();
+    status = initEncryption(&RSAData);
     if (status != XST_SUCCESS) {
     	print("Error initializing encryption\n\r");
     	cleanup_platform();
 		return 0;
+    }
+
+    XGpio EncryptionInputGpio;
+    status = setupGpioWithInterrupt(&InterruptController, &EncryptionInputGpio, XPAR_CONNECTION_EMBEDDED_RSA_INPUT_VALUE_DEVICE_ID, XPAR_FABRIC_CONNECTION_EMBEDDED_RSA_INPUT_VALUE_IP2INTC_IRPT_INTR, rsaInputInterrupt);
+    if (status != XST_SUCCESS) {
+    	print("Error setting up RSA input GPIO with interrupt\n\r");
+    	cleanup_platform();
+        return 0;
     }
 
 //    TODO: Add status LED
@@ -54,7 +62,6 @@ int main() {
     print("Embedded application initialized\n\r");
 
     while (1);
-
     cleanup_platform();
     return 0;
 }
