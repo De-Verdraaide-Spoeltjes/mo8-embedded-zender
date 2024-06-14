@@ -26,9 +26,7 @@ XStatus initEncryption(rsaData *RSAData) {
 	// Set the direction of the GPIO ports
 	XGpio_SetDataDirection(&dataOut, 1, 0xFFFFFFFF); 									// Set as output
 	XGpio_SetDataDirection(&Data_Rdy, 1, 0xFFFFFFFF); 									// Set as output
-	
-	RSA_Data->publicKey = 7;	  														// Waarde wordt tijdelijk gebruikt voor testen, na implementatie komt deze uit define.h
-	RSA_Data->modulus = 27033439;														// Waarde wordt tijdelijk gebruikt voor testen, na implementatie komt deze uit define.h
+
 	return XST_SUCCESS;
 }
 

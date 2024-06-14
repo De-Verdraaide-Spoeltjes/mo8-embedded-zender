@@ -10,6 +10,8 @@
 
 #define UART_DEVICE_ID XPAR_PS7_UART_1_DEVICE_ID
 
+XGpio *statusLed;
+
 XUartPs uart;		/* Instance of the UART Device */
 
 rsaData *RSAdata;
@@ -20,8 +22,9 @@ bool UartRecvAvailable();
 void UartRecvBytes(u8 *data, int length);
 void runKeyReceiver();
 
-XStatus initKeyReceiver(rsaData *RSAData) {
+XStatus initKeyReceiver(rsaData *RSAData, XGpio *statusLedGpio) {
 	RSAdata = RSAData;
+	statusLed = statusLedGpio;
 
 	XUartPs_Config *Config;
 	int status;
@@ -38,7 +41,9 @@ XStatus initKeyReceiver(rsaData *RSAData) {
 
 	XUartPs_SetBaudRate(&uart, 9600);
 
-	xil_printf("UART initialized\n\r");
+	#ifdef DEBUG
+		xil_printf("UART initialized\n\r");
+	#endif
 
 	return XST_SUCCESS;
 }
@@ -70,6 +75,11 @@ void keyReceiverInterrupt(void* gpio) {
 // TODO: Add timeouts to UART
 
 void runKeyReceiver() {
+	XGpio_DiscreteWrite(statusLed, 1, 0x4);
+
+	XTime start, now;
+	XTime_GetTime(&start);
+
 	#ifdef DEBUG
 		xil_printf("Requesting RSA key\n\r");
 	#endif
@@ -77,14 +87,32 @@ void runKeyReceiver() {
 	u8 data, resp;
 
 	// Wait for room to send data
-	while (!UartSendAvailable());
+	while (!UartSendAvailable()) {
+		XTime_GetTime(&now);
+		if (XTIME_TO_MICROS((now - start)) > UART_TOTAL_TIMEOUT) {
+			#ifdef DEBUG
+				xil_printf("Error: Timeout while waiting for room in the send buffer\n\r");
+			#endif
+			XGpio_DiscreteWrite(statusLed, 1, 0x1);
+			return;
+		}
+	}
 
 	// Request RSA key command
 	data = 0x01;
 	UartSendBytes(&data, 1);
 
 	// Wait for response
-	while (!UartRecvAvailable());
+	while (!UartRecvAvailable()) {
+		XTime_GetTime(&now);
+		if (XTIME_TO_MICROS((now - start)) > UART_INITIAL_TIMEOUT) {
+			#ifdef DEBUG
+				xil_printf("Error: Timeout while waiting for response\n\r");
+			#endif
+			XGpio_DiscreteWrite(statusLed, 1, 0x3);
+			return;
+		}
+	}
 
 	// Read response
 	UartRecvBytes(&resp, 1);
@@ -94,6 +122,7 @@ void runKeyReceiver() {
 		#ifdef DEBUG
 			xil_printf("Error: Received unknown command, expected 0x01 and received 0x%x\n\r", resp);
 		#endif
+		XGpio_DiscreteWrite(statusLed, 1, 0x1);
 		return;
 	}
 
@@ -102,7 +131,16 @@ void runKeyReceiver() {
 	#endif
 
 	// Wait for response
-	while (!UartRecvAvailable());
+	while (!UartRecvAvailable()) {
+		XTime_GetTime(&now);
+		if (XTIME_TO_MICROS((now - start)) > UART_TOTAL_TIMEOUT) {
+			#ifdef DEBUG
+				xil_printf("Error: Timeout while waiting for response\n\r");
+			#endif
+			XGpio_DiscreteWrite(statusLed, 1, 0x1);
+			return;
+		}
+	}
 
 	// Read RSA key command
 	UartRecvBytes(&data, 1);
@@ -112,6 +150,7 @@ void runKeyReceiver() {
 		#ifdef DEBUG
 			xil_printf("Error: Received unknown command, expected 0x02 and received 0x%x\n\r", resp);
 		#endif
+		XGpio_DiscreteWrite(statusLed, 1, 0x1);
 		return;
 	}
 
@@ -120,14 +159,32 @@ void runKeyReceiver() {
 	#endif
 
 	// Wait for room to send data
-	while (!UartSendAvailable());
+	while (!UartSendAvailable()) {
+		XTime_GetTime(&now);
+		if (XTIME_TO_MICROS((now - start)) > UART_TOTAL_TIMEOUT) {
+			#ifdef DEBUG
+				xil_printf("Error: Timeout while waiting for room in the send buffer\n\r");
+			#endif
+			XGpio_DiscreteWrite(statusLed, 1, 0x1);
+			return;
+		}
+	}
 
 	// Receive RSA key command
 	resp = 0x02;
 	UartSendBytes(&resp, 1);
 
 	// Wait for response
-	while (!UartRecvAvailable());
+	while (!UartRecvAvailable()) {
+		XTime_GetTime(&now);
+		if (XTIME_TO_MICROS((now - start)) > UART_TOTAL_TIMEOUT) {
+			#ifdef DEBUG
+				xil_printf("Error: Timeout while waiting for response\n\r");
+			#endif
+			XGpio_DiscreteWrite(statusLed, 1, 0x1);
+			return;
+		}
+	}
 
 	// Receive RSA key data
 	u8 keyData[8];
@@ -137,7 +194,16 @@ void runKeyReceiver() {
 	RSAdata->publicKey = *((uint64_t *) keyData);
 
 	// Wait for room to send data
-	while (!UartSendAvailable());
+	while (!UartSendAvailable()) {
+		XTime_GetTime(&now);
+		if (XTIME_TO_MICROS((now - start)) > UART_TOTAL_TIMEOUT) {
+			#ifdef DEBUG
+				xil_printf("Error: Timeout while waiting for room in the send buffer\n\r");
+			#endif
+			XGpio_DiscreteWrite(statusLed, 1, 0x1);
+			return;
+		}
+	}
 
 	// Acknowledge received key
 	resp = 0x03;
@@ -149,7 +215,16 @@ void runKeyReceiver() {
 	#endif
 
 	// Wait for response
-	while (!UartRecvAvailable());
+	while (!UartRecvAvailable()) {
+		XTime_GetTime(&now);
+		if (XTIME_TO_MICROS((now - start)) > UART_TOTAL_TIMEOUT) {
+			#ifdef DEBUG
+				xil_printf("Error: Timeout while waiting for response\n\r");
+			#endif
+			XGpio_DiscreteWrite(statusLed, 1, 0x1);
+			return;
+		}
+	}
 
 	// Receive RSA modulus data
 	u8 modulusData[4];
@@ -159,7 +234,16 @@ void runKeyReceiver() {
 	RSAdata->modulus = *((uint32_t *) modulusData);
 
 	// Wait for room to send data
-	while (!UartSendAvailable());
+	while (!UartSendAvailable()) {
+		XTime_GetTime(&now);
+		if (XTIME_TO_MICROS((now - start)) > UART_TOTAL_TIMEOUT) {
+			#ifdef DEBUG
+				xil_printf("Error: Timeout while waiting for room in the send buffer\n\r");
+			#endif
+			XGpio_DiscreteWrite(statusLed, 1, 0x1);
+			return;
+		}
+	}
 
 	// Acknowledge received modulus
 	resp = 0x04;
@@ -168,6 +252,9 @@ void runKeyReceiver() {
 	#ifdef DEBUG
 		xil_printf("Received RSA modulus: 0x%x\n\r", RSAdata->modulus);
 	#endif
+
+	// Set status LED to green
+	XGpio_DiscreteWrite(statusLed, 1, 0x2);
 }
 
 // Check if UART is ready to send data

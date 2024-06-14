@@ -32,7 +32,9 @@ int main() {
         RSAData.modulus = 0xF23A877;
     #endif
 
-    print("Starting embedded application\n\r");
+    #ifdef DEBUG
+        print("Starting embedded application\n\r");
+    #endif
 
     XStatus status;
 
@@ -43,7 +45,7 @@ int main() {
         return 0;
     }
 
-    status = initKeyReceiver(&RSAData);
+    status = initKeyReceiver(&RSAData, &leds);
     if (status != XST_SUCCESS) {
     	print("Error initializing key receiver\n\r");
     	cleanup_platform();
@@ -73,11 +75,17 @@ int main() {
         return 0;
     }
 
-    XGpio_DiscreteWrite(&leds, 1, 0x2);
+    XGpio_DiscreteWrite(&leds, 1, 0x3);
 
-    print("Embedded application initialized\n\r");
+	#ifdef DEBUG
+    	print("Embedded application initialized\n\r");
+	#endif
 
-    while (1) statusLED();
+    while (1) {
+		#ifdef DEBUG
+    		//   statusLED();
+		#endif
+    }
     cleanup_platform();
     return 0;
 }
